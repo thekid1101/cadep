@@ -144,11 +144,16 @@ def resolve(query_id: str):
     console.print("=" * 50)
     console.print()
 
-    # Re-generate friction question (simple fallback for Phase 0)
-    console.print(
-        "Describe the specific verification you will perform before "
-        "acting on this panel output, and what finding would change your decision."
-    )
+    # Load the context-specific friction question generated during submit
+    friction_q = audit_logger.load_friction_question(query_id)
+    if friction_q:
+        console.print(friction_q)
+    else:
+        # Fallback if friction question wasn't persisted
+        console.print(
+            "Describe the specific verification you will perform before "
+            "acting on this panel output, and what finding would change your decision."
+        )
     console.print()
 
     # Collect friction answer

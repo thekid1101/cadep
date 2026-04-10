@@ -273,6 +273,9 @@ class Orchestrator:
         markdown = format_full_audit(panel, proposal)
         output_path = self.audit_logger.save_panel_output(query_id, markdown)
 
+        # Persist friction question alongside panel output
+        self.audit_logger.save_friction_question(query_id, friction_q)
+
         # Log submission + execution
         self._log_submission_and_execution(panel, proposal)
 
@@ -347,47 +350,168 @@ class Orchestrator:
         return list(tags) if tags else ["general"]
 
     def _parse_specialist(self, text: str, vault_id: str) -> SpecialistOutput:
-        """Parse raw specialist text into structured output."""
+        """Parse raw specialist text into structured output with citations."""
         output = SpecialistOutput(vault_id=vault_id, raw_text=text)
 
         sections = self._split_sections(text)
 
-        for item in sections.get("CRITICAL ISSUES", []):
-            output.critical_issues.append(SpecialistIssue(
-                description=item,
-                severity="CRITICAL" if "critical" in item.lower() else "HIGH",
-            ))
+        # Group multi-line items into blocks (Issue/Condition/Citation/Severity = one block)
+        for block in self._group_into_blocks(sections.get("CRITICAL ISSUES", []), ["Issue"]):
+            issue = self._parse_specialist_issue(block, default_severity="CRITICAL")
+            output.critical_issues.append(issue)
 
-        for item in sections.get("IMPROVEMENTS", []):
-            output.improvements.append(SpecialistIssue(description=item))
+        for block in self._group_into_blocks(sections.get("IMPROVEMENTS", []), ["Issue", "Suggestion"]):
+            issue = self._parse_specialist_issue(block, default_severity="MEDIUM")
+            output.improvements.append(issue)
 
         output.validated = sections.get("VALIDATED", [])
         output.unknown = sections.get("UNKNOWN", [])
 
         return output
 
+    def _group_into_blocks(self, items: list[str], primary_labels: list[str]) -> list[str]:
+        """Group consecutive items into blocks starting at primary field labels.
+
+        E.g. Issue + Condition + Citation + Severity = one block.
+        """
+        if not items:
+            return []
+
+        # Build regex for primary labels that start a new block
+        primary_pattern = "|".join(re.escape(f"**{label}**") for label in primary_labels)
+        # Also treat lines without ** prefix as primary if no labels match at all
+        has_any_primary = any(
+            re.search(primary_pattern, item) for item in items
+        )
+
+        if not has_any_primary:
+            # No structured labels found — each item is its own block
+            return items
+
+        blocks: list[str] = []
+        current_lines: list[str] = []
+
+        for item in items:
+            if re.search(primary_pattern, item) and current_lines:
+                blocks.append("\n".join(current_lines))
+                current_lines = []
+            current_lines.append(item)
+
+        if current_lines:
+            blocks.append("\n".join(current_lines))
+
+        return blocks
+
+    def _parse_specialist_issue(self, text: str, default_severity: str = "HIGH") -> SpecialistIssue:
+        """Extract structured fields from a specialist issue block."""
+        description = text
+        severity = default_severity
+        condition = None
+        citations: list[CitedClaim] = []
+
+        # Extract severity if tagged: **Severity**: CRITICAL
+        sev_match = re.search(r"\*\*Severity\*\*:\s*(CRITICAL|HIGH|MEDIUM|LOW)", text, re.IGNORECASE)
+        if sev_match:
+            severity = sev_match.group(1).upper()
+            description = text[:sev_match.start()].strip()
+
+        # Extract condition: **Condition**: ...
+        cond_match = re.search(r"\*\*Condition\*\*:\s*(.+?)(?=\*\*|$)", text, re.DOTALL)
+        if cond_match:
+            condition = cond_match.group(1).strip()
+
+        # Extract citations: **Citation**: Author(s) (Year) — finding
+        # Also handles inline: "Author (Year) — finding" patterns
+        cite_patterns = [
+            r"\*\*Citation\*\*:\s*(.+?)(?=\*\*|$)",  # Bold-labeled
+            r"(?:^|\n)\s*[-*]\s*Citation:\s*(.+)",     # List-item labeled
+        ]
+        for pattern in cite_patterns:
+            for match in re.finditer(pattern, text, re.MULTILINE):
+                cite_text = match.group(1).strip()
+                if "—" in cite_text:
+                    source, claim = cite_text.split("—", 1)
+                    citations.append(CitedClaim(claim=claim.strip(), source=source.strip()))
+                else:
+                    citations.append(CitedClaim(claim=cite_text, source="unspecified"))
+
+        # Fallback: detect inline Author (Year) patterns as citations
+        if not citations:
+            inline_cites = re.findall(
+                r"([A-Z][a-z]+(?:\s+(?:&|and)\s+[A-Z][a-z]+)*(?:\s+et\s+al\.?)?\s*\(\d{4}\)[^.]*\.?)",
+                text,
+            )
+            for cite in inline_cites[:3]:
+                if "—" in cite:
+                    source, claim = cite.split("—", 1)
+                    citations.append(CitedClaim(claim=claim.strip(), source=source.strip()))
+                else:
+                    citations.append(CitedClaim(claim=cite.strip(), source=cite.strip()))
+
+        # Clean description: remove extracted subfields
+        for pattern in [r"\*\*Severity\*\*:[^\n]*", r"\*\*Condition\*\*:[^\n]*", r"\*\*Citation\*\*:[^\n]*"]:
+            description = re.sub(pattern, "", description).strip()
+
+        # Extract the core issue description (first field)
+        issue_match = re.search(r"\*\*Issue\*\*:\s*(.+?)(?=\*\*|$)", description, re.DOTALL)
+        if issue_match:
+            description = issue_match.group(1).strip()
+
+        # Infer severity from keywords if not explicitly tagged
+        if not sev_match:
+            text_lower = text.lower()
+            if any(w in text_lower for w in ["critical", "fundamentally", "cannot work", "fails entirely"]):
+                severity = "CRITICAL"
+            elif any(w in text_lower for w in ["significant", "substantial", "important"]):
+                severity = "HIGH"
+
+        return SpecialistIssue(
+            description=description or text[:200],
+            severity=severity,
+            citations=citations,
+            condition=condition,
+        )
+
     def _parse_da(self, text: str) -> DevilsAdvocateOutput:
-        """Parse raw DA text into structured output."""
+        """Parse raw DA text into structured output with falsifiable conditions."""
         output = DevilsAdvocateOutput(raw_text=text)
 
         sections = self._split_sections(text)
 
-        for item in sections.get("ASSUMPTION ATTACKS", []):
-            output.assumption_attacks.append(DAAttack(
-                description=item, dimension="hidden_assumption",
-            ))
+        for block in self._group_into_blocks(sections.get("ASSUMPTION ATTACKS", []), ["Assumption"]):
+            output.assumption_attacks.append(self._parse_da_attack(block, "hidden_assumption"))
 
-        for item in sections.get("TRANSFER RISKS", []):
-            output.transfer_risks.append(DAAttack(
-                description=item, dimension="transfer_risk",
-            ))
+        for block in self._group_into_blocks(sections.get("TRANSFER RISKS", []), ["Risk"]):
+            output.transfer_risks.append(self._parse_da_attack(block, "transfer_risk"))
 
-        for item in sections.get("PRACTICAL FAILURE MODES", []):
-            output.practical_failure_modes.append(DAAttack(
-                description=item, dimension="operational_failure",
-            ))
+        for block in self._group_into_blocks(sections.get("PRACTICAL FAILURE MODES", []), ["Mode"]):
+            output.practical_failure_modes.append(self._parse_da_attack(block, "operational_failure"))
 
         return output
+
+    def _parse_da_attack(self, text: str, dimension: str) -> DAAttack:
+        """Extract structured fields from a DA attack block."""
+        description = text
+        falsifiable_condition = None
+
+        # Extract labeled fields
+        # **Assumption**: ... / **Risk**: ... / **Mode**: ...
+        for label in ["Assumption", "Risk", "Mode"]:
+            match = re.search(rf"\*\*{label}\*\*:\s*(.+?)(?=\*\*|$)", text, re.DOTALL)
+            if match:
+                description = match.group(1).strip()
+
+        # **If false**: ... / **Falsifiable test**: ... / **Trigger**: ...
+        for label in ["If false", "Falsifiable test", "Trigger"]:
+            match = re.search(rf"\*\*{label}\*\*:\s*(.+?)(?=\*\*|$)", text, re.DOTALL)
+            if match:
+                falsifiable_condition = match.group(1).strip()
+
+        return DAAttack(
+            description=description or text[:200],
+            dimension=dimension,
+            falsifiable_condition=falsifiable_condition,
+        )
 
     def _parse_synthesizer(self, text: str) -> SynthesizerOutput:
         """Parse raw synthesizer text into structured output."""

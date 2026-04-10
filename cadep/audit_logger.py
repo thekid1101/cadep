@@ -121,6 +121,19 @@ class AuditLogger:
             return path.read_text(encoding="utf-8")
         return None
 
+    def save_friction_question(self, query_id: str, question: str) -> Path:
+        """Persist the generated friction question alongside the panel output."""
+        path = config.PANEL_OUTPUTS_DIR / f"{query_id}.friction.txt"
+        path.write_text(question, encoding="utf-8")
+        return path
+
+    def load_friction_question(self, query_id: str) -> str | None:
+        """Load a previously generated friction question."""
+        path = config.PANEL_OUTPUTS_DIR / f"{query_id}.friction.txt"
+        if path.exists():
+            return path.read_text(encoding="utf-8")
+        return None
+
     def get_staleness_warnings(self) -> list[dict]:
         """Check for stale unresolved audits."""
         unresolved = self.get_unresolved_audits()
