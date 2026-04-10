@@ -1,0 +1,56 @@
+{
+  "covariance-estimation": [
+    "covariance-estimation.high-dimensional",
+    "covariance-estimation.regularized"
+  ],
+  "covariance-estimation.high-dimensional": [
+    "ledoit-wolf-2004",
+    "ledoit-wolf-2012",
+    "bickel-levina-2008"
+  ],
+  "covariance-estimation.regularized": [
+    "ledoit-wolf-2004",
+    "friedman-hastie-tibshirani-2008",
+    "bickel-levina-2008"
+  ],
+  "shrinkage": [
+    "ledoit-wolf-2004",
+    "ledoit-wolf-2012"
+  ],
+  "graphical-lasso": [
+    "friedman-hastie-tibshirani-2008"
+  ],
+  "regularization": [
+    "ledoit-wolf-2004",
+    "ledoit-wolf-2012",
+    "friedman-hastie-tibshirani-2008",
+    "bickel-levina-2008"
+  ],
+  "copula": [
+    "dependence-modeling",
+    "tail-dependence"
+  ],
+  "dependence-modeling": [
+    "sklar-1959",
+    "nelsen-2006",
+    "joe-2014",
+    "embrechts-2003",
+    "chen-fan-2006"
+  ],
+  "tail-dependence": [
+    "joe-2014",
+    "embrechts-2003",
+    "nelsen-2006"
+  ],
+  "bootstrap": [
+    "efron-tibshirani-1993"
+  ],
+  "simulation": [
+    "efron-tibshirani-1993"
+  ],
+  "general": [
+    "ledoit-wolf-2004",
+    "nelsen-2006",
+    "efron-tibshirani-1993"
+  ]
+}
