@@ -1,0 +1,177 @@
+{
+  "covariance-estimation": [
+    "covariance-estimation.high-dimensional",
+    "covariance-estimation.regularized",
+    "covariance-estimation.dynamic"
+  ],
+  "covariance-estimation.high-dimensional": [
+    "ledoit-wolf-2004",
+    "ledoit-wolf-2012",
+    "ledoit-wolf-2020",
+    "bickel-levina-2008",
+    "marchenko-pastur-1967",
+    "bai-silverstein-2010",
+    "el-karoui-2008",
+    "fan-liao-mincheva-2013"
+  ],
+  "covariance-estimation.regularized": [
+    "ledoit-wolf-2004",
+    "friedman-hastie-tibshirani-2008",
+    "bickel-levina-2008",
+    "bien-tibshirani-2011",
+    "fan-liao-mincheva-2013"
+  ],
+  "covariance-estimation.dynamic": [
+    "engle-2002"
+  ],
+  "shrinkage": [
+    "ledoit-wolf-2004",
+    "ledoit-wolf-2012",
+    "ledoit-wolf-2020",
+    "jorion-1986"
+  ],
+  "graphical-lasso": [
+    "friedman-hastie-tibshirani-2008"
+  ],
+  "regularization": [
+    "ledoit-wolf-2004",
+    "ledoit-wolf-2012",
+    "ledoit-wolf-2020",
+    "friedman-hastie-tibshirani-2008",
+    "bickel-levina-2008",
+    "bien-tibshirani-2011",
+    "fan-liao-mincheva-2013"
+  ],
+  "sparsity": [
+    "bien-tibshirani-2011",
+    "fan-liao-mincheva-2013",
+    "friedman-hastie-tibshirani-2008"
+  ],
+  "factor-model": [
+    "fan-liao-mincheva-2013"
+  ],
+  "copula": [
+    "dependence-modeling",
+    "tail-dependence",
+    "dynamic-copula",
+    "goodness-of-fit",
+    "vine-copula"
+  ],
+  "dependence-modeling": [
+    "sklar-1959",
+    "nelsen-2006",
+    "joe-2014",
+    "embrechts-2003",
+    "chen-fan-2006",
+    "dissmann-brechmann-czado-kurowicka-2013"
+  ],
+  "tail-dependence": [
+    "joe-2014",
+    "embrechts-2003",
+    "nelsen-2006"
+  ],
+  "dynamic-copula": [
+    "patton-2006"
+  ],
+  "goodness-of-fit": [
+    "genest-remillard-beaudoin-2009"
+  ],
+  "model-selection": [
+    "genest-remillard-beaudoin-2009",
+    "dissmann-brechmann-czado-kurowicka-2013"
+  ],
+  "vine-copula": [
+    "joe-2014",
+    "dissmann-brechmann-czado-kurowicka-2013"
+  ],
+  "random-matrix-theory": [
+    "marchenko-pastur-1967",
+    "johnstone-2001",
+    "bai-silverstein-2010",
+    "el-karoui-2008",
+    "ledoit-wolf-2020"
+  ],
+  "eigenvalue-distribution": [
+    "marchenko-pastur-1967",
+    "johnstone-2001",
+    "bai-silverstein-2010",
+    "el-karoui-2008",
+    "ledoit-wolf-2020"
+  ],
+  "principal-components": [
+    "johnstone-2001"
+  ],
+  "monte-carlo": [
+    "glasserman-2003",
+    "robert-casella-2004",
+    "kroese-taimre-botev-2011"
+  ],
+  "variance-reduction": [
+    "glasserman-2003",
+    "kroese-taimre-botev-2011"
+  ],
+  "importance-sampling": [
+    "glasserman-2003",
+    "robert-casella-2004"
+  ],
+  "mcmc": [
+    "robert-casella-2004"
+  ],
+  "rare-event-simulation": [
+    "kroese-taimre-botev-2011"
+  ],
+  "simulation": [
+    "efron-tibshirani-1993",
+    "glasserman-2003",
+    "robert-casella-2004",
+    "kroese-taimre-botev-2011"
+  ],
+  "bootstrap": [
+    "efron-tibshirani-1993"
+  ],
+  "garch": [
+    "bollerslev-1986"
+  ],
+  "volatility-modeling": [
+    "bollerslev-1986",
+    "engle-2002"
+  ],
+  "time-series-dependence": [
+    "bollerslev-1986",
+    "engle-2002",
+    "patton-2006"
+  ],
+  "dcc": [
+    "engle-2002"
+  ],
+  "portfolio-optimization": [
+    "demiguel-garlappi-uppal-2009",
+    "michaud-1998",
+    "jorion-1986",
+    "black-litterman-1992"
+  ],
+  "estimation-error": [
+    "demiguel-garlappi-uppal-2009",
+    "michaud-1998",
+    "jorion-1986",
+    "black-litterman-1992"
+  ],
+  "diversification": [
+    "demiguel-garlappi-uppal-2009"
+  ],
+  "resampling": [
+    "michaud-1998",
+    "efron-tibshirani-1993"
+  ],
+  "bayesian-estimation": [
+    "black-litterman-1992"
+  ],
+  "general": [
+    "ledoit-wolf-2004",
+    "nelsen-2006",
+    "efron-tibshirani-1993",
+    "bai-silverstein-2010",
+    "robert-casella-2004",
+    "glasserman-2003"
+  ]
+}
